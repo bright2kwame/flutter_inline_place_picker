@@ -1,21 +1,22 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:sona_app/common/app_enums.dart';
-import 'package:sona_app/ui/util/app_input_decorator.dart';
-import 'package:sona_app/ui/util/app_utility.dart';
-import 'package:sona_app/ui/util/place_data.dart';
-import 'package:sona_app/ui/util/place_picker_data.dart';
-import 'package:sona_app/ui/util/size_config.dart';
+import 'package:inline_place_picker/app_utility.dart';
+import 'package:inline_place_picker/place_data.dart';
+import 'package:inline_place_picker/place_picker_data.dart';
 
 class AddressAutoCompleteView extends StatefulWidget {
+  final String googleApiKey;
   final String labelHint;
+  final InputDecoration? inputDecoration;
   final Function(PlaceData placeData) placeSelected;
   final Function(TextEditingController controller) updateEditingController;
   const AddressAutoCompleteView({
     super.key,
     required this.labelHint,
+    required this.googleApiKey,
     required this.placeSelected,
     required this.updateEditingController,
+    this.inputDecoration,
   });
   @override
   State<AddressAutoCompleteView> createState() =>
@@ -33,12 +34,7 @@ class _AddressAutoCompleteViewState extends State<AddressAutoCompleteView> {
 
   @override
   void initState() {
-    loadResourcse();
     super.initState();
-  }
-
-  Future<void> loadResourcse() async {
-    apiKey = await AppUtility.loadKeys(context, AppKeys.placeApi);
   }
 
 //MARK: get detail place information
@@ -177,7 +173,9 @@ class _AddressAutoCompleteViewState extends State<AddressAutoCompleteView> {
           onChanged: (value) {
             _startApiCall(textEditingController.text.trim(), context);
           },
-          decoration: AppInputDecorator.outlinedDecoration(widget.labelHint),
+          decoration: widget.inputDecoration == null
+              ? _outlinedDecoration(widget.labelHint)
+              : widget.inputDecoration!,
         );
       },
       optionsViewBuilder: (context, onSelected, options) {
@@ -187,7 +185,7 @@ class _AddressAutoCompleteViewState extends State<AddressAutoCompleteView> {
             elevation: 2.0,
             color: Colors.white,
             child: SizedBox(
-              width: SizeConfig(context).screenW! * 0.85,
+              width: MediaQuery.of(context).size.width * 0.85,
               height: options.length * 64,
               child: ListView.builder(
                 padding: const EdgeInsets.all(8.0),
@@ -222,6 +220,27 @@ class _AddressAutoCompleteViewState extends State<AddressAutoCompleteView> {
         _lastOptions = options;
         return options;
       },
+    );
+  }
+
+  static EdgeInsets contentPadding = const EdgeInsets.all(12.0);
+
+  static InputDecoration _outlinedDecoration(String hint) {
+    return InputDecoration(
+      labelText: hint,
+      contentPadding: contentPadding,
+      focusedBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(5)),
+        borderSide: BorderSide(color: Colors.black, width: 1.0),
+      ),
+      enabledBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(5)),
+        borderSide: BorderSide(color: Colors.grey),
+      ),
+      border: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(5)),
+        borderSide: BorderSide(color: Colors.grey),
+      ),
     );
   }
 }
